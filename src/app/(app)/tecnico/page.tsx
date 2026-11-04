@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { Trash2 } from "lucide-react";
-import { Cabecalho } from "@/components/cabecalho";
 import { createClient } from "@/lib/supabase/server";
 import { getSessao } from "@/lib/sessao";
 import { agoraMs, formataData, hoje, mesAtual, rotuloMes, somaMeses } from "@/lib/datas";
@@ -35,8 +34,7 @@ export default async function AreaTecnico() {
 
   return (
     <>
-      <Cabecalho ativo="tecnico" />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
+      <div className="w-full">
         <div className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Olá, {tecnico?.nome ?? "técnico"} 👷</h1>
           <p className="text-muted">Registre suas ações de segurança de {rotuloMes(mes)}.</p>
@@ -119,7 +117,7 @@ export default async function AreaTecnico() {
             )}
           </section>
         </div>
-      </main>
+      </div>
     </>
   );
 }

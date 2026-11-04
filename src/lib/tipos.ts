@@ -62,3 +62,6 @@ export type Tecnico = {
   papel: "tecnico" | "gestor";
   ativo: boolean;
 };
+
+/** Linha enxuta usada pelo painel de relatórios. */
+export type Linha = Pick<Resumo, "tecnico" | "mes" | "tipo" | "realizado" | "meta">;
