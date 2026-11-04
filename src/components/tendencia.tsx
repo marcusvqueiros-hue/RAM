@@ -1,12 +1,13 @@
 "use client";
 
-import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, LabelList, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { PontoMensal } from "@/lib/relatorio";
 
-type Props = { titulo: string; dados: PontoMensal[]; mesSel: string | null; onMes: (mes: string) => void };
+type Props = { titulo: string; dados: PontoMensal[]; mesSel: string | null; mesParcial: string; onMes: (mes: string) => void };
 
-export function Tendencia({ titulo, dados, mesSel, onMes }: Props) {
-  const d = dados.map((x) => ({ ...x, pct: Math.round(x.pct) }));
+export function Tendencia({ titulo, dados, mesSel, mesParcial, onMes }: Props) {
+  const d = dados.map((x) => ({ ...x, pct: Math.round(x.pct), rotulo: x.mes === mesParcial ? `${x.rotulo}*` : x.rotulo }));
+  const temParcial = d.some((x) => x.mes === mesParcial);
   return (
     <figure className="card p-4 sm:p-5">
       <figcaption className="mb-2 text-lg font-bold">{titulo}</figcaption>
@@ -17,7 +18,7 @@ export function Tendencia({ titulo, dados, mesSel, onMes }: Props) {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={d}
-              margin={{ top: 10, right: 12, left: -16, bottom: 0 }}
+              margin={{ top: 38, right: 30, left: -16, bottom: 0 }}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onClick={(s: any) => {
                 const i = Number(s?.activeIndex);
@@ -50,12 +51,31 @@ export function Tendencia({ titulo, dados, mesSel, onMes }: Props) {
                 isAnimationActive={false}
                 dot={{ r: 3.5, fill: "var(--brand)" }}
                 activeDot={{ r: 6 }}
-              />
+              >
+                <LabelList
+                  dataKey="pct"
+                  content={(p) => {
+                    const i = Number(p.index);
+                    const x = Number(p.x);
+                    const y = Number(p.y);
+                    const pt = d[i];
+                    if (!pt || Number.isNaN(x) || Number.isNaN(y)) return null;
+                    return (
+                      <g style={{ pointerEvents: "none" }}>
+                        <text x={x} y={y - 22} textAnchor="middle" fontSize={11} fontWeight={700} fill="var(--fg)">{pt.pct}%</text>
+                        <text x={x} y={y - 10} textAnchor="middle" fontSize={9.5} fill="var(--muted)">{pt.realizado}/{pt.meta}</text>
+                      </g>
+                    );
+                  }}
+                />
+              </Area>
             </AreaChart>
           </ResponsiveContainer>
         </div>
       )}
-      <p className="mt-1 text-center text-xs text-muted">Clique em um ponto para abrir o mês</p>
+      <p className="mt-1 text-center text-xs text-muted">
+        Rótulos: % da meta e realizado/meta no mês · clique em um ponto para abrir o mês{temParcial ? " · * mês em andamento" : ""}
+      </p>
     </figure>
   );
 }

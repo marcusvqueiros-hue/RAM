@@ -21,6 +21,9 @@ type Props = {
 export function GraficoTipo({ titulo, linhas, curtos, tecnicoSel, onTecnico, tipoSel, tipoFiltrando, onTipo }: Props) {
   const dados = linhas.map((l) => ({ ...l, curto: curtos.get(l.tecnico) ?? l.tecnico, ok: l.meta === 0 || l.realizado >= l.meta }));
   const apagado = tipoFiltrando && !tipoSel;
+  const totReal = linhas.reduce((s, l) => s + l.realizado, 0);
+  const totMeta = linhas.reduce((s, l) => s + l.meta, 0);
+  const totPct = totMeta > 0 ? Math.round((totReal / totMeta) * 100) : 0;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderBarra = (p: any) => (
@@ -89,6 +92,10 @@ export function GraficoTipo({ titulo, linhas, curtos, tecnicoSel, onTecnico, tip
           </ResponsiveContainer>
         </div>
       )}
+      <p className="mt-2 text-center text-sm">
+        Total no período: <strong className="tabular-nums">{totReal}</strong> ações · meta <strong className="tabular-nums">{totMeta}</strong> ·{" "}
+        <strong className={totPct >= 100 ? "text-ok" : "text-bad"}>{totPct}%</strong>
+      </p>
       <div className="mt-1 flex justify-center gap-4 text-xs text-muted" aria-hidden>
         <span className="flex items-center gap-1.5"><i className="size-2.5 rounded-sm bg-ok" /> Meta batida</span>
         <span className="flex items-center gap-1.5"><i className="size-2.5 rounded-sm bg-bad" /> Abaixo</span>

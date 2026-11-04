@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { BarChart3, ClipboardCheck, LogOut, PanelLeft, ShieldCheck, X } from "lucide-react";
+import { useState, useSyncExternalStore } from "react";
+import { BarChart3, ClipboardCheck, LogOut, Maximize, Minimize, PanelLeft, ShieldCheck, X } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 
 const ITENS = [
@@ -11,17 +11,34 @@ const ITENS = [
   { href: "/relatorios", label: "Relatórios", Icon: BarChart3 },
 ];
 
+function useTelaCheia() {
+  return useSyncExternalStore(
+    (cb) => {
+      document.addEventListener("fullscreenchange", cb);
+      return () => document.removeEventListener("fullscreenchange", cb);
+    },
+    () => document.fullscreenElement !== null,
+    () => false,
+  );
+}
+
 type Props = { nome: string; papel: string; sair: () => Promise<void>; children: React.ReactNode };
 
 export function Shell({ nome, papel, sair, children }: Props) {
   const pathname = usePathname();
   const [recolhido, setRecolhido] = useState(false); // desktop
   const [aberto, setAberto] = useState(false); // mobile (gaveta)
+  const telaCheia = useTelaCheia();
   const titulo = ITENS.find((i) => pathname.startsWith(i.href))?.label ?? "RAM";
 
   function alternar() {
     if (window.matchMedia("(min-width: 1024px)").matches) setRecolhido((v) => !v);
     else setAberto((v) => !v);
+  }
+
+  function alternarTelaCheia() {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void document.documentElement.requestFullscreen().catch(() => {});
   }
 
   return (
@@ -31,13 +48,13 @@ export function Shell({ nome, papel, sair, children }: Props) {
 
       <aside
         id="menu-lateral"
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-line bg-surface transition-[transform,margin] duration-300 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0 ${
-          aberto ? "translate-x-0" : "-translate-x-full"
-        } ${recolhido ? "lg:-ml-64" : "lg:ml-0"}`}
+        className={`flex shrink-0 flex-col border-line bg-surface transition-[transform,width] duration-300 max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-40 max-lg:w-64 max-lg:border-r lg:sticky lg:top-0 lg:h-dvh lg:overflow-hidden ${
+          aberto ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"
+        } ${recolhido ? "lg:w-0 lg:border-r-0" : "lg:w-64 lg:border-r"}`}
         aria-label="Menu lateral"
         inert={!aberto && recolhido ? true : undefined}
       >
-        <div className="flex h-16 items-center gap-3 border-b border-line px-4">
+        <div className="flex h-16 w-64 shrink-0 items-center gap-3 border-b border-line px-4">
           <span className="grid size-9 place-items-center rounded-xl bg-brand text-brandfg">
             <ShieldCheck size={20} aria-hidden />
           </span>
@@ -47,7 +64,7 @@ export function Shell({ nome, papel, sair, children }: Props) {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 p-3" aria-label="Principal">
+        <nav className="w-64 flex-1 space-y-1 p-3" aria-label="Principal">
           {ITENS.map(({ href, label, Icon }) => {
             const ativo = pathname.startsWith(href);
             return (
@@ -66,7 +83,7 @@ export function Shell({ nome, papel, sair, children }: Props) {
           })}
         </nav>
 
-        <div className="border-t border-line p-3">
+        <div className="w-64 border-t border-line p-3">
           <div className="mb-2 px-2">
             <p className="truncate text-sm font-semibold">{nome}</p>
             <p className="text-xs capitalize text-muted">{papel}</p>
@@ -93,7 +110,16 @@ export function Shell({ nome, papel, sair, children }: Props) {
             <PanelLeft size={18} aria-hidden />
           </button>
           <p className="text-lg font-bold tracking-tight">{titulo}</p>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={alternarTelaCheia}
+              aria-label={telaCheia ? "Sair da tela cheia" : "Entrar em tela cheia"}
+              title={telaCheia ? "Sair da tela cheia (Esc)" : "Tela cheia"}
+              className="grid size-10 place-items-center rounded-xl border border-line text-muted transition-colors hover:text-fg"
+            >
+              {telaCheia ? <Minimize size={18} aria-hidden /> : <Maximize size={18} aria-hidden />}
+            </button>
             <ThemeToggle />
           </div>
         </header>

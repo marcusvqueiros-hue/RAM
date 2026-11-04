@@ -49,12 +49,13 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
     const equipe = montaRelatorio(periodo);
     const porTipo = periodo.filter((r) => !f.tipo || r.tipo === f.tipo);
     const kpi = montaRelatorio(porTipo.filter((r) => !f.tecnico || r.tecnico === f.tecnico));
+    const totais = montaRelatorio(periodo.filter((r) => !f.tecnico || r.tecnico === f.tecnico));
     const rank = montaRelatorio(porTipo);
     const insights = geraInsights(equipe, rows, f.ano, f.mes, hoje);
     const serie = serieMensal(rows, f.ano, f.tecnico, f.tipo, f.mes === mesCorrente ? undefined : mesCorrente);
     const nomesAno = [...new Set(rows.filter((r) => r.mes.startsWith(String(f.ano))).map((r) => r.tecnico))].sort((a, b) => a.localeCompare(b));
     const curtos = nomesCurtos([...new Set(periodo.map((r) => r.tecnico))]);
-    return { equipe, kpi, rank, insights, serie, nomesAno, curtos, vazio: equipe.totalMeta === 0 && equipe.totalRealizado === 0 };
+    return { equipe, kpi, totais, rank, insights, serie, nomesAno, curtos, vazio: equipe.totalMeta === 0 && equipe.totalRealizado === 0 };
   }, [rows, f, hoje, mesCorrente]);
 
   const meses = Array.from({ length: 12 }, (_, i) => `${f.ano}-${String(i + 1).padStart(2, "0")}-01`);
@@ -143,6 +144,53 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
             <div className="card grid place-items-center p-3"><Medidor valor={d.kpi.pctCumprimento} rotulo="% Cumprimento por tipo" /></div>
           </section>
 
+          <section aria-labelledby="h-tot" className="card mb-6 overflow-x-auto p-5">
+            <h2 id="h-tot" className="mb-3 text-lg font-bold">
+              Totais no período · {periodoRotulo}{f.tecnico ? ` · ${f.tecnico}` : ""}
+            </h2>
+            <table className="w-full min-w-[30rem] text-left text-sm">
+              <thead className="text-muted">
+                <tr className="border-b border-line">
+                  <th className="py-2 pr-3 font-medium">Tipo de ação</th>
+                  <th className="py-2 pr-3 text-right font-medium">Realizado</th>
+                  <th className="py-2 pr-3 text-right font-medium">Meta</th>
+                  <th className="py-2 pr-3 text-right font-medium">Saldo</th>
+                  <th className="py-2 text-right font-medium">%</th>
+                </tr>
+              </thead>
+              <tbody>
+                {d.totais.porTipo.map((t) => (
+                  <tr key={t.tipo} className={`border-b border-line ${f.tipo === t.tipo ? "bg-brandsoft" : ""}`}>
+                    <td className="py-2.5 pr-3 font-medium">
+                      <button onClick={() => alternaTipo(t.tipo)} className="text-left hover:text-brand hover:underline" aria-pressed={f.tipo === t.tipo}>
+                        {TIPO_INFO[t.tipo].nome}
+                      </button>
+                    </td>
+                    <td className="py-2.5 pr-3 text-right tabular-nums">{t.realizado}</td>
+                    <td className="py-2.5 pr-3 text-right tabular-nums">{t.meta}</td>
+                    <td className={`py-2.5 pr-3 text-right tabular-nums ${t.realizado >= t.meta ? "text-ok" : "text-bad"}`}>
+                      {t.realizado - t.meta > 0 ? "+" : ""}{t.realizado - t.meta}
+                    </td>
+                    <td className={`py-2.5 text-right font-semibold tabular-nums ${t.realizado >= t.meta ? "text-ok" : "text-bad"}`}>
+                      {t.meta ? Math.round((t.realizado / t.meta) * 100) : 0}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="font-bold">
+                  <td className="pt-3 pr-3">Total</td>
+                  <td className="pt-3 pr-3 text-right tabular-nums">{d.totais.totalRealizado}</td>
+                  <td className="pt-3 pr-3 text-right tabular-nums">{d.totais.totalMeta}</td>
+                  <td className="pt-3 pr-3 text-right tabular-nums">
+                    {d.totais.totalRealizado - d.totais.totalMeta > 0 ? "+" : ""}{d.totais.totalRealizado - d.totais.totalMeta}
+                  </td>
+                  <td className="pt-3 text-right tabular-nums">{Math.round(d.totais.pctBruto)}%</td>
+                </tr>
+              </tfoot>
+            </table>
+          </section>
+
           {d.insights.length > 0 && (
             <section aria-labelledby="h-insights" className="mb-6">
               <h2 id="h-insights" className="mb-3 flex items-center gap-2 text-lg font-bold">
@@ -184,6 +232,7 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
               titulo={`Evolução do atingimento · ${f.ano}${f.tecnico ? ` · ${f.tecnico}` : ""}${f.tipo ? ` · ${TIPO_INFO[f.tipo].curto}` : ""}`}
               dados={d.serie}
               mesSel={f.mes}
+              mesParcial={mesCorrente}
               onMes={abreMes}
             />
           </section>
