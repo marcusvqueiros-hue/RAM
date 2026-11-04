@@ -31,7 +31,12 @@ export default async function Relatorios(props: PageProps<"/relatorios">) {
   const anoP = Number(um(sp.ano));
   const ano = Number.isInteger(anoP) && anoP >= 2020 && anoP <= 2100 ? anoP : Number(h.slice(0, 4));
   const mesRaw = um(sp.mes);
-  const mes = mesRaw === "todos" ? null : (normalizaMes(mesRaw) ?? mesAtual());
+  const meses =
+    mesRaw === "todos"
+      ? []
+      : mesRaw
+        ? [...new Set(mesRaw.split(",").map((m) => normalizaMes(m)).filter((m): m is string => !!m))].sort()
+        : [mesAtual()];
   const tipoP = um(sp.tipo);
   const tipo = TIPOS.includes(tipoP as TipoAcao) ? (tipoP as TipoAcao) : null;
 
@@ -39,7 +44,7 @@ export default async function Relatorios(props: PageProps<"/relatorios">) {
     <PainelRelatorio
       rows={linhas}
       hoje={h}
-      inicial={{ ano: mes ? Number(mes.slice(0, 4)) : ano, mes, tecnico: um(sp.tec) ?? null, tipo }}
+      inicial={{ ano: meses.length ? Number(meses[0].slice(0, 4)) : ano, meses: meses.filter((m) => m.startsWith(String(meses.length ? meses[0].slice(0, 4) : ano))), tecnico: um(sp.tec) ?? null, tipo }}
     />
   );
 }

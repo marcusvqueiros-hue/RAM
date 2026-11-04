@@ -17,7 +17,7 @@ import {
 } from "@/lib/relatorio";
 import { TIPO_INFO, type Linha, type TipoAcao } from "@/lib/tipos";
 
-export type FiltroInicial = { ano: number; mes: string | null; tecnico: string | null; tipo: TipoAcao | null };
+export type FiltroInicial = { ano: number; meses: string[]; tecnico: string | null; tipo: TipoAcao | null };
 
 const ICONE: Record<Insight["tom"], { Icon: typeof Info; cls: string }> = {
   critico: { Icon: OctagonAlert, cls: "bg-badsoft text-bad" },
@@ -32,37 +32,46 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
   function mudar(patch: Partial<FiltroInicial>) {
     const n = { ...f, ...patch };
     setF(n);
-    const q = new URLSearchParams({ ano: String(n.ano), mes: n.mes ? n.mes.slice(0, 7) : "todos" });
+    const q = new URLSearchParams({ ano: String(n.ano), mes: n.meses.length ? n.meses.map((m) => m.slice(0, 7)).join(",") : "todos" });
     if (n.tecnico) q.set("tec", n.tecnico);
     if (n.tipo) q.set("tipo", n.tipo);
     window.history.replaceState(null, "", `?${q}`); // URL compartilhável sem recarregar
   }
   const alternaTecnico = (nome: string) => mudar({ tecnico: f.tecnico === nome ? null : nome });
   const alternaTipo = (t: TipoAcao) => mudar({ tipo: f.tipo === t ? null : t });
-  const abreMes = (mes: string) => mudar({ ano: Number(mes.slice(0, 4)), mes });
+  const abreMes = (mes: string) => mudar({ ano: Number(mes.slice(0, 4)), meses: [mes] });
+  const alternaMes = (m: string) =>
+    mudar({ meses: f.meses.includes(m) ? f.meses.filter((x) => x !== m) : [...f.meses, m].sort() });
+  const mesUnico = f.meses.length === 1 ? f.meses[0] : null;
 
   const mesCorrente = hoje.slice(0, 7) + "-01";
   const anos = useMemo(() => [...new Set([...anosDe(rows), Number(hoje.slice(0, 4))])].sort((a, b) => b - a), [rows, hoje]);
 
   const d = useMemo(() => {
-    const periodo = doPeriodo(rows, f.ano, f.mes);
+    const periodo = doPeriodo(rows, f.ano, f.meses);
     const equipe = montaRelatorio(periodo);
     const porTipo = periodo.filter((r) => !f.tipo || r.tipo === f.tipo);
     const kpi = montaRelatorio(porTipo.filter((r) => !f.tecnico || r.tecnico === f.tecnico));
     const totais = montaRelatorio(periodo.filter((r) => !f.tecnico || r.tecnico === f.tecnico));
     const rank = montaRelatorio(porTipo);
-    const insights = geraInsights(equipe, rows, f.ano, f.mes, hoje);
-    const serie = serieMensal(rows, f.ano, f.tecnico, f.tipo, f.mes === mesCorrente ? undefined : mesCorrente);
+    const insights = geraInsights(equipe, rows, f.ano, mesUnico, hoje);
+    const serie = serieMensal(rows, f.ano, f.tecnico, f.tipo, f.meses.includes(mesCorrente) ? undefined : mesCorrente);
     const nomesAno = [...new Set(rows.filter((r) => r.mes.startsWith(String(f.ano))).map((r) => r.tecnico))].sort((a, b) => a.localeCompare(b));
     const geral = equipe.porTecnico
       .map((x) => ({ tecnico: x.tecnico, realizado: x.realizado, meta: x.meta }))
       .sort((a, b) => b.realizado - a.realizado || a.tecnico.localeCompare(b.tecnico));
     const curtos = nomesCurtos([...new Set(periodo.map((r) => r.tecnico))]);
     return { equipe, geral, kpi, totais, rank, insights, serie, nomesAno, curtos, vazio: equipe.totalMeta === 0 && equipe.totalRealizado === 0 };
-  }, [rows, f, hoje, mesCorrente]);
+  }, [rows, f, hoje, mesCorrente, mesUnico]);
 
   const meses = Array.from({ length: 12 }, (_, i) => `${f.ano}-${String(i + 1).padStart(2, "0")}-01`);
-  const periodoRotulo = f.mes ? rotuloMesCap(f.mes) : `Ano de ${f.ano}`;
+  const periodoRotulo =
+    f.meses.length === 0
+      ? `Ano de ${f.ano}`
+      : f.meses.length === 1
+        ? rotuloMesCap(f.meses[0])
+        : `${f.meses.map((m) => rotuloMesCap(m, "curto").split(" ")[0]).join(", ")} de ${f.ano}`;
+  const trimestres = [["T1", 0], ["T2", 3], ["T3", 6], ["T4", 9]] as const;
   const filtrosAtivos = [
     f.tecnico && { k: "tecnico", label: `Técnico: ${f.tecnico}`, limpa: () => mudar({ tecnico: null }) },
     f.tipo && { k: "tipo", label: `Tipo: ${TIPO_INFO[f.tipo].nome}`, limpa: () => mudar({ tipo: null }) },
@@ -79,18 +88,9 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
         <div className="flex flex-wrap items-end gap-3">
           <label className="grid gap-1 text-xs font-medium text-muted">
             Ano
-            <select className="input !w-auto" value={f.ano} onChange={(e) => mudar({ ano: Number(e.target.value), mes: null })}>
+            <select className="input !w-auto" value={f.ano} onChange={(e) => mudar({ ano: Number(e.target.value), meses: [] })}>
               {anos.map((a) => (
                 <option key={a} value={a}>{a}</option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-1 text-xs font-medium text-muted">
-            Mês
-            <select className="input !w-auto" value={f.mes ?? ""} onChange={(e) => mudar({ mes: e.target.value || null })}>
-              <option value="">Ano todo</option>
-              {meses.map((m) => (
-                <option key={m} value={m}>{rotuloMesCap(m)}</option>
               ))}
             </select>
           </label>
@@ -104,6 +104,52 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
             </select>
           </label>
         </div>
+      </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-2" role="group" aria-label="Filtro de meses (seleção múltipla)">
+        <button
+          type="button"
+          onClick={() => mudar({ meses: [] })}
+          aria-pressed={f.meses.length === 0}
+          className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${f.meses.length === 0 ? "border-brand bg-brand text-brandfg" : "border-line text-muted hover:text-fg"}`}
+        >
+          Ano todo
+        </button>
+        <span className="mx-1 hidden h-5 w-px bg-line sm:block" aria-hidden />
+        {meses.map((m) => {
+          const on = f.meses.includes(m);
+          const futuro = m > mesCorrente;
+          return (
+            <button
+              key={m}
+              type="button"
+              onClick={() => alternaMes(m)}
+              aria-pressed={on}
+              title={rotuloMesCap(m)}
+              className={`min-w-12 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${
+                on ? "border-brand bg-brand text-brandfg" : futuro ? "border-line text-muted/50 hover:text-muted" : "border-line text-muted hover:border-brand hover:text-fg"
+              }`}
+            >
+              {rotuloMesCap(m, "curto").split(" ")[0].replace(".", "")}
+            </button>
+          );
+        })}
+        <span className="mx-1 hidden h-5 w-px bg-line sm:block" aria-hidden />
+        {trimestres.map(([nome, ini]) => {
+          const set = meses.slice(ini, ini + 3);
+          const on = set.length === f.meses.length && set.every((m) => f.meses.includes(m));
+          return (
+            <button
+              key={nome}
+              type="button"
+              onClick={() => mudar({ meses: on ? [] : set })}
+              aria-pressed={on}
+              className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${on ? "border-brand bg-brandsoft text-brand" : "border-line text-muted hover:text-fg"}`}
+            >
+              {nome}
+            </button>
+          );
+        })}
       </div>
 
       {filtrosAtivos.length > 0 && (
@@ -245,7 +291,7 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
             <Tendencia
               titulo={`Evolução do atingimento · ${f.ano}${f.tecnico ? ` · ${f.tecnico}` : ""}${f.tipo ? ` · ${TIPO_INFO[f.tipo].curto}` : ""}`}
               dados={d.serie}
-              mesSel={f.mes}
+              mesesSel={f.meses}
               mesParcial={mesCorrente}
               onMes={abreMes}
             />

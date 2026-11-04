@@ -39,8 +39,8 @@ export function nomesCurtos(nomes: string[]): Map<string, string> {
 // ------------------------------------------------------------------ filtros
 export const anosDe = (rows: Linha[]) => [...new Set(rows.map((r) => Number(r.mes.slice(0, 4))))].sort((a, b) => b - a);
 
-export function doPeriodo(rows: Linha[], ano: number, mes: string | null): Linha[] {
-  return rows.filter((r) => (mes ? r.mes === mes : r.mes.startsWith(String(ano))) && (r.meta > 0 || r.realizado > 0));
+export function doPeriodo(rows: Linha[], ano: number, meses: string[]): Linha[] {
+  return rows.filter((r) => (meses.length ? meses.includes(r.mes) : r.mes.startsWith(String(ano))) && (r.meta > 0 || r.realizado > 0));
 }
 
 // ----------------------------------------------------------------- agregação

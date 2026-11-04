@@ -3,9 +3,9 @@
 import { Area, AreaChart, CartesianGrid, LabelList, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { PontoMensal } from "@/lib/relatorio";
 
-type Props = { titulo: string; dados: PontoMensal[]; mesSel: string | null; mesParcial: string; onMes: (mes: string) => void };
+type Props = { titulo: string; dados: PontoMensal[]; mesesSel: string[]; mesParcial: string; onMes: (mes: string) => void };
 
-export function Tendencia({ titulo, dados, mesSel, mesParcial, onMes }: Props) {
+export function Tendencia({ titulo, dados, mesesSel, mesParcial, onMes }: Props) {
   const d = dados.map((x) => ({ ...x, pct: Math.round(x.pct), rotulo: x.mes === mesParcial ? `${x.rotulo}*` : x.rotulo }));
   const temParcial = d.some((x) => x.mes === mesParcial);
   return (
@@ -36,9 +36,11 @@ export function Tendencia({ titulo, dados, mesSel, mesParcial, onMes }: Props) {
               <XAxis dataKey="rotulo" tickLine={false} axisLine={false} tick={{ fill: "var(--muted)", fontSize: 11 }} minTickGap={12} />
               <YAxis unit="%" tickLine={false} axisLine={false} tick={{ fill: "var(--muted)", fontSize: 11 }} domain={[0, (m: number) => Math.max(120, Math.ceil(m / 10) * 10)]} />
               <ReferenceLine y={100} stroke="var(--warn)" strokeDasharray="4 4" label={{ value: "Meta", fill: "var(--warn)", fontSize: 11, position: "insideTopRight" }} />
-              {mesSel && d.some((x) => x.mes === mesSel) && (
-                <ReferenceLine x={d.find((x) => x.mes === mesSel)!.rotulo} stroke="var(--brand)" strokeWidth={2} strokeOpacity={0.5} />
-              )}
+              {d
+                .filter((x) => mesesSel.includes(x.mes))
+                .map((x) => (
+                  <ReferenceLine key={x.mes} x={x.rotulo} stroke="var(--brand)" strokeWidth={2} strokeOpacity={0.5} />
+                ))}
               <Tooltip
                 contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--fg)" }}
                 formatter={(v, _n, p) => [`${v}% (${p.payload.realizado}/${p.payload.meta})`, "Atingimento"]}
