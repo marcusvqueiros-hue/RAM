@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { UserPlus } from "lucide-react";
+import { FundoLogin } from "@/components/fundo-login";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { FormCadastrar } from "./form-cadastrar";
 
@@ -13,29 +13,21 @@ export default async function Cadastrar() {
     .from("ram_tecnicos")
     .select("id, nome")
     .eq("ativo", true)
+    .eq("papel", "tecnico")
     .is("user_id", null)
     .order("nome");
 
   return (
-    <main className="grid flex-1 place-items-center px-4 py-12">
-      <div className="card w-full max-w-md p-6 sm:p-8">
-        <div className="mb-6 flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-xl bg-brand text-brandfg">
-            <UserPlus aria-hidden />
-          </span>
-          <div>
-            <h1 className="text-xl font-bold">Criar conta</h1>
-            <p className="text-sm text-muted">Vincule seu nome e defina e-mail e senha.</p>
-          </div>
-        </div>
-        <FormCadastrar opcoes={data ?? []} />
-        <p className="mt-6 text-center text-sm text-muted">
-          Já tem conta?{" "}
-          <Link href="/entrar" className="font-semibold text-brand underline-offset-4 hover:underline">
-            Entrar
-          </Link>
-        </p>
-      </div>
-    </main>
+    <FundoLogin>
+      <h1 className="text-2xl font-bold tracking-tight">Criar conta</h1>
+      <p className="mb-6 mt-1 text-sm text-muted">Vincule seu nome e defina e-mail e senha.</p>
+      <FormCadastrar opcoes={data ?? []} />
+      <p className="mt-6 text-center text-sm text-muted">
+        Já tem conta?{" "}
+        <Link href="/entrar" className="font-semibold text-brand underline-offset-4 hover:underline">
+          Entrar
+        </Link>
+      </p>
+    </FundoLogin>
   );
 }

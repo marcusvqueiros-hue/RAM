@@ -3,11 +3,12 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { emailDeLogin } from "@/lib/usuario";
 
 export type EstadoForm = { erro?: string };
 
 const schema = z.object({
-  email: z.string().trim().toLowerCase().email("E-mail inválido"),
+  usuario: z.string().trim().min(2, "Informe o usuário").max(120),
   senha: z.string().min(1, "Informe a senha"),
 });
 
@@ -18,11 +19,14 @@ function destinoSeguro(next: FormDataEntryValue | null): string {
 }
 
 export async function entrar(_: EstadoForm, fd: FormData): Promise<EstadoForm> {
-  const p = schema.safeParse({ email: fd.get("email"), senha: fd.get("senha") });
+  const p = schema.safeParse({ usuario: fd.get("usuario"), senha: fd.get("senha") });
   if (!p.success) return { erro: p.error.issues[0].message };
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email: p.data.email, password: p.data.senha });
-  if (error) return { erro: "E-mail ou senha incorretos." };
+  const { error } = await supabase.auth.signInWithPassword({
+    email: emailDeLogin(p.data.usuario),
+    password: p.data.senha,
+  });
+  if (error) return { erro: "Usuário ou senha incorretos." };
   redirect(destinoSeguro(fd.get("next")));
 }
 
