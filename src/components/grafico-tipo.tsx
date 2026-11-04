@@ -57,13 +57,13 @@ export function GraficoTipo({ titulo, linhas, curtos, tecnicoSel, onTecnico, tip
   };
 
   return (
-    <figure className={`card p-4 transition-opacity sm:p-5 ${apagado ? "opacity-45" : ""} ${tipoSel ? "ring-2 ring-brand" : ""}`}>
+    <figure className={`card p-4 transition-opacity sm:p-5 ${apagado ? "opacity-45" : ""} ${tipoSel && tipoFiltrando ? "ring-2 ring-brand" : ""}`}>
       <figcaption className="mb-2 text-center">
         <button
           type="button"
           onClick={onTipo}
           aria-pressed={tipoSel}
-          title={tipoSel ? "Remover filtro deste tipo" : "Filtrar a página por este tipo"}
+          title={tipoSel ? "Remover filtro de tipo" : "Filtrar a página por este tipo"}
           className="rounded-lg px-2 py-0.5 text-lg font-bold transition-colors hover:bg-brandsoft hover:text-brand"
         >
           {titulo}

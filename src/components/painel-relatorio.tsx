@@ -54,8 +54,11 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
     const insights = geraInsights(equipe, rows, f.ano, f.mes, hoje);
     const serie = serieMensal(rows, f.ano, f.tecnico, f.tipo, f.mes === mesCorrente ? undefined : mesCorrente);
     const nomesAno = [...new Set(rows.filter((r) => r.mes.startsWith(String(f.ano))).map((r) => r.tecnico))].sort((a, b) => a.localeCompare(b));
+    const geral = equipe.porTecnico
+      .map((x) => ({ tecnico: x.tecnico, realizado: x.realizado, meta: x.meta }))
+      .sort((a, b) => b.realizado - a.realizado || a.tecnico.localeCompare(b.tecnico));
     const curtos = nomesCurtos([...new Set(periodo.map((r) => r.tecnico))]);
-    return { equipe, kpi, totais, rank, insights, serie, nomesAno, curtos, vazio: equipe.totalMeta === 0 && equipe.totalRealizado === 0 };
+    return { equipe, geral, kpi, totais, rank, insights, serie, nomesAno, curtos, vazio: equipe.totalMeta === 0 && equipe.totalRealizado === 0 };
   }, [rows, f, hoje, mesCorrente]);
 
   const meses = Array.from({ length: 12 }, (_, i) => `${f.ano}-${String(i + 1).padStart(2, "0")}-01`);
@@ -215,6 +218,16 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
 
           <p className="mb-3 text-sm text-muted">Dica: clique em uma barra ou nome para filtrar por técnico, e no título de um gráfico para filtrar por tipo de ação.</p>
           <section aria-label="Resultados por tipo de ação" className="mb-6 grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+            <GraficoTipo
+              titulo="Ações Geral"
+              linhas={d.geral}
+              curtos={d.curtos}
+              tecnicoSel={f.tecnico}
+              onTecnico={alternaTecnico}
+              tipoSel={f.tipo === null}
+              tipoFiltrando={false}
+              onTipo={() => mudar({ tipo: null })}
+            />
             {d.equipe.porTipo.map((t) => (
               <GraficoTipo
                 key={t.tipo}
@@ -228,6 +241,7 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
                 onTipo={() => alternaTipo(t.tipo)}
               />
             ))}
+            <div className="md:col-span-2 2xl:col-span-3">
             <Tendencia
               titulo={`Evolução do atingimento · ${f.ano}${f.tecnico ? ` · ${f.tecnico}` : ""}${f.tipo ? ` · ${TIPO_INFO[f.tipo].curto}` : ""}`}
               dados={d.serie}
@@ -235,6 +249,7 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
               mesParcial={mesCorrente}
               onMes={abreMes}
             />
+            </div>
           </section>
 
           <section aria-labelledby="h-rank" className="card overflow-x-auto p-5">
