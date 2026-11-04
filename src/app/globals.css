@@ -131,6 +131,12 @@ body {
   --brand-soft: #f7e9ec;
   --bad: #c2243d;
   --bad-soft: #fde8eb;
+  --ok: #15803d;
+  --ok-soft: #e6f4ea;
+  --warn: #b45309;
+  --warn-soft: #fdf1dc;
+  --info: #2563eb;
+  --info-soft: #e8f0fe;
   color: var(--fg);
 }
 

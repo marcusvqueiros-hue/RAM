@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { AlertTriangle, Camera, CheckCircle2, HardHat, Info, Lightbulb, OctagonAlert, Share2, Target, X } from "lucide-react";
+import { AlertTriangle, Camera, CheckCircle2, Download, HardHat, Info, Lightbulb, OctagonAlert, Share2, Target, X } from "lucide-react";
 import { GraficoTipo } from "./grafico-tipo";
 import { Medidor } from "./medidor";
+import { SlideFoto } from "./slide-foto";
 import { Tendencia } from "./tendencia";
 import {
   anosDe,
@@ -28,42 +29,55 @@ const ICONE: Record<Insight["tom"], { Icon: typeof Info; cls: string }> = {
 
 export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: string; inicial: FiltroInicial }) {
   const [f, setF] = useState<FiltroInicial>(inicial);
-  const painelRef = useRef<HTMLDivElement>(null);
-  const [foto, setFoto] = useState<{ gerando: boolean; msg: string }>({ gerando: false, msg: "" });
+  const slideRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [capturando, setCapturando] = useState(false);
+  const [prev, setPrev] = useState<{ url: string; blob: Blob; nome: string } | null>(null);
+  const [aviso, setAviso] = useState("");
 
-  /** Gera um PNG do painel inteiro; `compartilhar` abre a folha de compartilhamento (WhatsApp no celular). */
-  async function gerarFoto(compartilhar: boolean) {
-    const el = painelRef.current;
-    if (!el) return;
-    setFoto({ gerando: true, msg: "" });
+  /** Monta o slide 16:9 fora da tela, tira a foto e abre a pré-visualização. */
+  async function gerarFoto() {
+    setAviso("");
+    setCapturando(true);
     try {
+      await new Promise((r) => setTimeout(r, 900)); // dá tempo de os gráficos medirem e desenharem
+      const el = slideRef.current;
+      if (!el) throw new Error("slide");
       const { toBlob } = await import("html-to-image");
-      const blob = await toBlob(el, {
-        pixelRatio: 2,
-        cacheBust: true,
-        backgroundColor: getComputedStyle(document.body).backgroundColor,
-        style: { padding: "24px" },
-        filter: (n) => !(n instanceof HTMLElement && n.dataset.nocapture !== undefined),
-      });
+      const blob = await toBlob(el, { pixelRatio: 2, cacheBust: true, backgroundColor: "#f6f4f5", width: 1280, height: 720 });
       if (!blob) throw new Error("sem imagem");
       const periodo = f.meses.length ? f.meses.map((m) => m.slice(5, 7)).join("-") : "ano";
       const nome = `RAM-${f.ano}-${periodo}${f.tecnico ? "-" + f.tecnico.replace(/[^\p{L}\p{N}]+/gu, "") : ""}.png`;
-      const arquivo = new File([blob], nome, { type: "image/png" });
-      if (compartilhar && navigator.canShare?.({ files: [arquivo] })) {
+      if (prev) URL.revokeObjectURL(prev.url);
+      setPrev({ url: URL.createObjectURL(blob), blob, nome });
+      dialogRef.current?.showModal();
+    } catch {
+      setAviso("Não foi possível gerar a imagem. Tente novamente.");
+    } finally {
+      setCapturando(false);
+    }
+  }
+
+  function baixarFoto() {
+    if (!prev) return;
+    const a = document.createElement("a");
+    a.href = prev.url;
+    a.download = prev.nome;
+    a.click();
+  }
+
+  async function compartilharFoto() {
+    if (!prev) return;
+    const arquivo = new File([prev.blob], prev.nome, { type: "image/png" });
+    if (navigator.canShare?.({ files: [arquivo] })) {
+      try {
         await navigator.share({ files: [arquivo], title: `RAM · ${periodoRotulo}` });
-        setFoto({ gerando: false, msg: "Compartilhado" });
-        return;
+      } catch {
+        /* usuário cancelou */
       }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = nome;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-      setFoto({ gerando: false, msg: compartilhar ? "Compartilhamento indisponível aqui: imagem baixada" : "Imagem baixada" });
-    } catch (e) {
-      const cancelou = e instanceof DOMException && e.name === "AbortError";
-      setFoto({ gerando: false, msg: cancelou ? "" : "Não foi possível gerar a imagem" });
+    } else {
+      baixarFoto();
+      setAviso("Compartilhamento direto indisponível neste aparelho: a imagem foi baixada.");
     }
   }
 
@@ -116,7 +130,7 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
   ].filter(Boolean) as { k: string; label: string; limpa: () => void }[];
 
   return (
-    <div className="w-full" ref={painelRef}>
+    <div className="w-full">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-brand">Relatório de Atividades Mensais</h1>
@@ -124,27 +138,15 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
         </div>
 
         <div className="flex flex-wrap items-end gap-3">
-          <div className="flex items-center gap-2" data-nocapture>
-            <button
-              type="button"
-              onClick={() => gerarFoto(false)}
-              disabled={foto.gerando}
-              className="btn btn-ghost !min-h-11"
-              title="Baixar uma foto (PNG) do painel completo"
-            >
-              <Camera size={18} aria-hidden /> {foto.gerando ? "Gerando…" : "Foto do painel"}
-            </button>
-            <button
-              type="button"
-              onClick={() => gerarFoto(true)}
-              disabled={foto.gerando}
-              className="btn btn-ghost !min-h-11 !px-3"
-              aria-label="Compartilhar foto do painel (WhatsApp)"
-              title="Compartilhar (WhatsApp)"
-            >
-              <Share2 size={18} aria-hidden />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={gerarFoto}
+            disabled={capturando}
+            className="btn btn-ghost !min-h-11"
+            title="Foto 16:9 dos 6 gráficos principais, com pré-visualização"
+          >
+            <Camera size={18} aria-hidden /> {capturando ? "Gerando…" : "Foto dos gráficos"}
+          </button>
           <label className="grid gap-1 text-xs font-medium text-muted">
             Ano
             <select className="input !w-auto" value={f.ano} onChange={(e) => mudar({ ano: Number(e.target.value), meses: [] })}>
@@ -211,7 +213,7 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
         })}
       </div>
 
-      <p className="mb-2 h-5 text-right text-sm text-muted" role="status" data-nocapture>{foto.msg}</p>
+      <p className="mb-2 h-5 text-right text-sm text-muted" role="status">{aviso}</p>
 
       {filtrosAtivos.length > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2" aria-label="Filtros ativos">
@@ -399,6 +401,48 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
           </section>
         </>
       )}
+      {capturando && (
+        <div aria-hidden style={{ position: "fixed", left: -10000, top: 0, width: 1280, height: 720, pointerEvents: "none" }}>
+          <SlideFoto
+            ref={slideRef}
+            periodo={periodoRotulo}
+            filtros={f.tecnico ? `Técnico: ${f.tecnico}` : ""}
+            geral={d.geral}
+            porTipo={d.equipe.porTipo}
+            curtos={d.curtos}
+            tecnicoSel={f.tecnico}
+            totais={d.equipe}
+            hoje={hoje}
+          />
+        </div>
+      )}
+
+      <dialog
+        ref={dialogRef}
+        onClose={() => {
+          if (prev) URL.revokeObjectURL(prev.url);
+          setPrev(null);
+        }}
+        aria-label="Pré-visualização da foto"
+        className="m-auto w-[min(96vw,64rem)] rounded-2xl border border-line bg-surface p-0 text-fg backdrop:bg-black/60"
+      >
+        <div className="flex items-center gap-3 border-b border-line px-5 py-3">
+          <h2 className="text-lg font-bold">Pré-visualização · 16:9</h2>
+          <button type="button" onClick={() => dialogRef.current?.close()} className="ml-auto grid size-9 place-items-center rounded-lg text-muted hover:text-fg" aria-label="Fechar">
+            <X size={18} aria-hidden />
+          </button>
+        </div>
+        <div className="p-5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {prev && <img src={prev.url} alt={`Foto dos gráficos principais — ${periodoRotulo}`} className="aspect-video w-full rounded-xl border border-line bg-white" />}
+          <p className="mt-2 text-xs text-muted">Formato 16:9 (2560×1440), pronto para colar no PowerPoint ou enviar pelo WhatsApp.</p>
+        </div>
+        <div className="flex flex-wrap justify-end gap-2 border-t border-line px-5 py-3">
+          <button type="button" onClick={() => dialogRef.current?.close()} className="btn btn-ghost">Fechar</button>
+          <button type="button" onClick={compartilharFoto} className="btn btn-ghost"><Share2 size={18} aria-hidden /> Compartilhar</button>
+          <button type="button" onClick={baixarFoto} className="btn"><Download size={18} aria-hidden /> Baixar PNG</button>
+        </div>
+      </dialog>
     </div>
   );
 }

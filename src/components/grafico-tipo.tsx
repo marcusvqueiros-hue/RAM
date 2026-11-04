@@ -16,9 +16,11 @@ type Props = {
   tipoSel: boolean; // este tipo está filtrado
   tipoFiltrando: boolean; // existe algum tipo filtrado
   onTipo: () => void;
+  /** versão densa para a imagem 16:9 */
+  compacto?: boolean;
 };
 
-export function GraficoTipo({ titulo, linhas, curtos, tecnicoSel, onTecnico, tipoSel, tipoFiltrando, onTipo }: Props) {
+export function GraficoTipo({ titulo, linhas, curtos, tecnicoSel, onTecnico, tipoSel, tipoFiltrando, onTipo, compacto = false }: Props) {
   const dados = linhas.map((l) => ({ ...l, curto: curtos.get(l.tecnico) ?? l.tecnico, ok: l.meta === 0 || l.realizado >= l.meta }));
   const apagado = tipoFiltrando && !tipoSel;
   const totReal = linhas.reduce((s, l) => s + l.realizado, 0);
@@ -57,22 +59,22 @@ export function GraficoTipo({ titulo, linhas, curtos, tecnicoSel, onTecnico, tip
   };
 
   return (
-    <figure className={`card p-4 transition-opacity sm:p-5 ${apagado ? "opacity-45" : ""} ${tipoSel && tipoFiltrando ? "ring-2 ring-brand" : ""}`}>
-      <figcaption className="mb-2 text-center">
+    <figure className={`card transition-opacity ${compacto ? "p-3" : "p-4 sm:p-5"} ${apagado ? "opacity-45" : ""} ${tipoSel && tipoFiltrando ? "ring-2 ring-brand" : ""}`}>
+      <figcaption className={`text-center ${compacto ? "mb-0" : "mb-2"}`}>
         <button
           type="button"
           onClick={onTipo}
           aria-pressed={tipoSel}
           title={tipoSel ? "Remover filtro de tipo" : "Filtrar a página por este tipo"}
-          className="rounded-lg px-2 py-0.5 text-lg font-bold transition-colors hover:bg-brandsoft hover:text-brand"
+          className={`rounded-lg px-2 py-0.5 font-bold transition-colors hover:bg-brandsoft hover:text-brand ${compacto ? "text-base" : "text-lg"}`}
         >
           {titulo}
         </button>
       </figcaption>
       {dados.length === 0 ? (
-        <p className="grid h-64 place-items-center text-sm text-muted">Sem dados no período</p>
+        <p className={`grid place-items-center text-sm text-muted ${compacto ? "h-44" : "h-64"}`}>Sem dados no período</p>
       ) : (
-        <div className="h-64" aria-hidden>
+        <div className={compacto ? "h-44" : "h-64"} aria-hidden>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={dados} margin={{ top: 22, right: 8, left: -24, bottom: 0 }}>
               <CartesianGrid vertical={false} stroke="var(--border)" />
@@ -92,11 +94,11 @@ export function GraficoTipo({ titulo, linhas, curtos, tecnicoSel, onTecnico, tip
           </ResponsiveContainer>
         </div>
       )}
-      <p className="mt-2 text-center text-sm">
+      <p className={`text-center ${compacto ? "mt-1 text-xs" : "mt-2 text-sm"}`}>
         Total no período: <strong className="tabular-nums">{totReal}</strong> ações · meta <strong className="tabular-nums">{totMeta}</strong> ·{" "}
         <strong className={totPct >= 100 ? "text-ok" : "text-bad"}>{totPct}%</strong>
       </p>
-      <div className="mt-1 flex justify-center gap-4 text-xs text-muted" aria-hidden>
+      <div className={`mt-1 flex justify-center gap-4 text-xs text-muted ${compacto ? "hidden" : ""}`} aria-hidden>
         <span className="flex items-center gap-1.5"><i className="size-2.5 rounded-sm bg-ok" /> Meta batida</span>
         <span className="flex items-center gap-1.5"><i className="size-2.5 rounded-sm bg-bad" /> Abaixo</span>
         <span className="flex items-center gap-1.5"><i className="h-0.5 w-4 rounded bg-warn" /> Meta</span>
