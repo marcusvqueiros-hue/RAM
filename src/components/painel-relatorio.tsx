@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, HardHat, Info, Lightbulb, OctagonAlert, Target, X } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { AlertTriangle, Camera, CheckCircle2, HardHat, Info, Lightbulb, OctagonAlert, Share2, Target, X } from "lucide-react";
 import { GraficoTipo } from "./grafico-tipo";
 import { Medidor } from "./medidor";
 import { Tendencia } from "./tendencia";
@@ -28,6 +28,44 @@ const ICONE: Record<Insight["tom"], { Icon: typeof Info; cls: string }> = {
 
 export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: string; inicial: FiltroInicial }) {
   const [f, setF] = useState<FiltroInicial>(inicial);
+  const painelRef = useRef<HTMLDivElement>(null);
+  const [foto, setFoto] = useState<{ gerando: boolean; msg: string }>({ gerando: false, msg: "" });
+
+  /** Gera um PNG do painel inteiro; `compartilhar` abre a folha de compartilhamento (WhatsApp no celular). */
+  async function gerarFoto(compartilhar: boolean) {
+    const el = painelRef.current;
+    if (!el) return;
+    setFoto({ gerando: true, msg: "" });
+    try {
+      const { toBlob } = await import("html-to-image");
+      const blob = await toBlob(el, {
+        pixelRatio: 2,
+        cacheBust: true,
+        backgroundColor: getComputedStyle(document.body).backgroundColor,
+        style: { padding: "24px" },
+        filter: (n) => !(n instanceof HTMLElement && n.dataset.nocapture !== undefined),
+      });
+      if (!blob) throw new Error("sem imagem");
+      const periodo = f.meses.length ? f.meses.map((m) => m.slice(5, 7)).join("-") : "ano";
+      const nome = `RAM-${f.ano}-${periodo}${f.tecnico ? "-" + f.tecnico.replace(/[^\p{L}\p{N}]+/gu, "") : ""}.png`;
+      const arquivo = new File([blob], nome, { type: "image/png" });
+      if (compartilhar && navigator.canShare?.({ files: [arquivo] })) {
+        await navigator.share({ files: [arquivo], title: `RAM · ${periodoRotulo}` });
+        setFoto({ gerando: false, msg: "Compartilhado" });
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = nome;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      setFoto({ gerando: false, msg: compartilhar ? "Compartilhamento indisponível aqui: imagem baixada" : "Imagem baixada" });
+    } catch (e) {
+      const cancelou = e instanceof DOMException && e.name === "AbortError";
+      setFoto({ gerando: false, msg: cancelou ? "" : "Não foi possível gerar a imagem" });
+    }
+  }
 
   function mudar(patch: Partial<FiltroInicial>) {
     const n = { ...f, ...patch };
@@ -78,7 +116,7 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
   ].filter(Boolean) as { k: string; label: string; limpa: () => void }[];
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={painelRef}>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-brand">Relatório de Atividades Mensais</h1>
@@ -86,6 +124,27 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
         </div>
 
         <div className="flex flex-wrap items-end gap-3">
+          <div className="flex items-center gap-2" data-nocapture>
+            <button
+              type="button"
+              onClick={() => gerarFoto(false)}
+              disabled={foto.gerando}
+              className="btn btn-ghost !min-h-11"
+              title="Baixar uma foto (PNG) do painel completo"
+            >
+              <Camera size={18} aria-hidden /> {foto.gerando ? "Gerando…" : "Foto do painel"}
+            </button>
+            <button
+              type="button"
+              onClick={() => gerarFoto(true)}
+              disabled={foto.gerando}
+              className="btn btn-ghost !min-h-11 !px-3"
+              aria-label="Compartilhar foto do painel (WhatsApp)"
+              title="Compartilhar (WhatsApp)"
+            >
+              <Share2 size={18} aria-hidden />
+            </button>
+          </div>
           <label className="grid gap-1 text-xs font-medium text-muted">
             Ano
             <select className="input !w-auto" value={f.ano} onChange={(e) => mudar({ ano: Number(e.target.value), meses: [] })}>
@@ -151,6 +210,8 @@ export function PainelRelatorio({ rows, hoje, inicial }: { rows: Linha[]; hoje: 
           );
         })}
       </div>
+
+      <p className="mb-2 h-5 text-right text-sm text-muted" role="status" data-nocapture>{foto.msg}</p>
 
       {filtrosAtivos.length > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2" aria-label="Filtros ativos">
