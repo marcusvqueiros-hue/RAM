@@ -44,3 +44,4 @@ next-env.d.ts
 
 # dados internos (planilha de origem)
 /data/
+/supabase/_setup_completo.sql

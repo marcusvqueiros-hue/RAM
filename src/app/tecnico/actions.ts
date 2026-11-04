@@ -30,7 +30,7 @@ export async function registrarAcao(_: EstadoRegistro, fd: FormData): Promise<Es
   if (!tecnico?.ativo) return { erro: "Seu usuário não está vinculado a um técnico ativo." };
 
   const supabase = await createClient();
-  const { error } = await supabase.from("registros").insert({
+  const { error } = await supabase.from("ram_registros").insert({
     tecnico_id: tecnico.id,
     tipo: d.tipo,
     data: d.data,
@@ -49,7 +49,7 @@ export async function removerRegistro(fd: FormData) {
   const id = z.string().uuid().safeParse(fd.get("id"));
   if (!id.success) return;
   const supabase = await createClient();
-  await supabase.from("registros").delete().eq("id", id.data); // RLS: só os próprios (últimos 7 dias)
+  await supabase.from("ram_registros").delete().eq("id", id.data); // RLS: só os próprios (últimos 7 dias)
   revalidatePath("/tecnico");
   revalidatePath("/relatorios");
 }

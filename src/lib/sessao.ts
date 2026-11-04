@@ -11,7 +11,7 @@ export const getSessao = cache(async () => {
   } = await supabase.auth.getUser();
   if (!user) return { user: null, tecnico: null as Tecnico | null };
   const { data } = await supabase
-    .from("tecnicos")
+    .from("ram_tecnicos")
     .select("id, nome, user_id, papel, ativo")
     .eq("user_id", user.id)
     .maybeSingle<Tecnico>();

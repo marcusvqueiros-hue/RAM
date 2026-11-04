@@ -29,7 +29,7 @@ export default async function Relatorios(props: PageProps<"/relatorios">) {
   const supabase = await createClient();
 
   const { data: equipe } = await supabase
-    .from("v_resumo_equipe")
+    .from("v_ram_resumo_equipe")
     .select("mes, tipo, realizado, meta")
     .order("mes")
     .returns<ResumoEquipe[]>();
@@ -39,7 +39,7 @@ export default async function Relatorios(props: PageProps<"/relatorios">) {
   const mes = mesParam && meses.includes(mesParam) ? mesParam : atual;
 
   const { data: linhas } = await supabase
-    .from("v_resumo_mensal")
+    .from("v_ram_resumo_mensal")
     .select("tecnico_id, tecnico, mes, tipo, realizado, meta")
     .gte("mes", somaMeses(mes, -3))
     .lte("mes", mes)

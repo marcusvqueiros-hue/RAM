@@ -10,7 +10,7 @@ export default async function Cadastrar() {
   // Lista só nomes de técnicos ativos ainda sem conta (nenhum dado sensível).
   const admin = createAdminClient();
   const { data } = await admin
-    .from("tecnicos")
+    .from("ram_tecnicos")
     .select("id, nome")
     .eq("ativo", true)
     .is("user_id", null)

@@ -29,7 +29,7 @@ export async function cadastrar(_: EstadoForm, fd: FormData): Promise<EstadoForm
   if (tecnico === "__novo") {
     if (!novoNome || novoNome.length < 2) return { erro: "Informe seu nome." };
     const { data, error } = await admin
-      .from("tecnicos")
+      .from("ram_tecnicos")
       .insert({ nome: novoNome })
       .select("id")
       .single();
@@ -37,7 +37,7 @@ export async function cadastrar(_: EstadoForm, fd: FormData): Promise<EstadoForm
     tecnicoId = data.id;
   } else {
     const { data } = await admin
-      .from("tecnicos")
+      .from("ram_tecnicos")
       .select("id")
       .eq("id", tecnico)
       .is("user_id", null)
@@ -52,13 +52,13 @@ export async function cadastrar(_: EstadoForm, fd: FormData): Promise<EstadoForm
     email_confirm: true,
   });
   if (errUser || !criado.user) {
-    if (tecnico === "__novo") await admin.from("tecnicos").delete().eq("id", tecnicoId);
+    if (tecnico === "__novo") await admin.from("ram_tecnicos").delete().eq("id", tecnicoId);
     return { erro: errUser?.message.includes("already") ? "E-mail já cadastrado." : "Não foi possível criar a conta." };
   }
 
   // vínculo atômico: só liga se ainda não houver user_id
   const { data: ligado } = await admin
-    .from("tecnicos")
+    .from("ram_tecnicos")
     .update({ user_id: criado.user.id })
     .eq("id", tecnicoId)
     .is("user_id", null)

@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
   }
-  const { data, error } = await createAdminClient().rpc("rolar_metas", { p_mes: mesAtual() });
+  const { data, error } = await createAdminClient().rpc("ram_rolar_metas", { p_mes: mesAtual() });
   if (error) return NextResponse.json({ erro: error.message }, { status: 500 });
   return NextResponse.json({ metas_criadas: data });
 }

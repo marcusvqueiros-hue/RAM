@@ -19,9 +19,9 @@ export default async function AreaTecnico() {
 
   const [{ data: resumo }, { data: recentes }] = tecnico
     ? await Promise.all([
-        supabase.from("v_resumo_mensal").select("tipo, realizado, meta").eq("tecnico_id", tecnico.id).eq("mes", mes),
+        supabase.from("v_ram_resumo_mensal").select("tipo, realizado, meta").eq("tecnico_id", tecnico.id).eq("mes", mes),
         supabase
-          .from("registros")
+          .from("ram_registros")
           .select("id, tipo, data, quantidade, local, created_at")
           .eq("tecnico_id", tecnico.id)
           .order("data", { ascending: false })
