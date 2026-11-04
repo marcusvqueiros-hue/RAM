@@ -23,7 +23,7 @@ export function SlideFoto({ ref, periodo, filtros, geral, porTipo, curtos, tecni
   const comum = { curtos, tecnicoSel, onTecnico: nada, tipoFiltrando: false, tipoSel: false, onTipo: nada, compacto: true } as const;
   return (
     <div ref={ref} className="login-light flex flex-col" style={{ width: 1280, height: 720, background: "#f6f4f5", padding: 18, gap: 10 }}>
-      <div className="flex items-end justify-between">
+      <div className="grid items-end" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
         <div>
           <p className="text-2xl font-extrabold leading-tight text-brand">Relatório de Atividades Mensais</p>
           <p className="text-sm text-muted">
@@ -31,7 +31,7 @@ export function SlideFoto({ ref, periodo, filtros, geral, porTipo, curtos, tecni
             {filtros ? ` · ${filtros}` : ""}
           </p>
         </div>
-        <div className="flex items-center gap-5 text-right">
+        <div className="flex items-center justify-center gap-8 text-center">
           <div>
             <p className="text-2xl font-extrabold tabular-nums leading-none">{totais.totalRealizado}</p>
             <p className="text-xs text-muted">Realizado</p>
@@ -49,6 +49,7 @@ export function SlideFoto({ ref, periodo, filtros, geral, porTipo, curtos, tecni
             <p className="text-xs text-muted">Cumprimento por tipo</p>
           </div>
         </div>
+        <div aria-hidden />
       </div>
 
       <div className="grid flex-1 grid-cols-3 gap-3" style={{ gridTemplateRows: "repeat(2, 1fr)" }}>
