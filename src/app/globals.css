@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f6f4f5;
+  --surface: #ffffff;
+  --surface-2: #faf8f9;
+  --fg: #1d1a1b;
+  --muted: #6b6366;
+  --border: #e6e0e2;
+  --brand: #8a1c33;
+  --brand-fg: #ffffff;
+  --brand-soft: #f7e9ec;
+  --ok: #15803d;
+  --ok-soft: #e6f4ea;
+  --bad: #c2243d;
+  --bad-soft: #fde8eb;
+  --warn: #b45309;
+  --warn-soft: #fdf1dc;
+  --info: #2563eb;
+  --info-soft: #e8f0fe;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151213;
+    --surface: #201c1d;
+    --surface-2: #272223;
+    --fg: #f1ecee;
+    --muted: #a69da1;
+    --border: #383133;
+    --brand: #e0556f;
+    --brand-fg: #1a0b0f;
+    --brand-soft: #3a1c24;
+    --ok: #4ade80;
+    --ok-soft: #14301f;
+    --bad: #fb7185;
+    --bad-soft: #3b1a20;
+    --warn: #fbbf24;
+    --warn-soft: #3a2c10;
+    --info: #7aa7ff;
+    --info-soft: #172544;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--border);
+  --color-brand: var(--brand);
+  --color-brandfg: var(--brand-fg);
+  --color-brandsoft: var(--brand-soft);
+  --color-ok: var(--ok);
+  --color-oksoft: var(--ok-soft);
+  --color-bad: var(--bad);
+  --color-badsoft: var(--bad-soft);
+  --color-warn: var(--warn);
+  --color-warnsoft: var(--warn-soft);
+  --color-info: var(--info);
+  --color-infosoft: var(--info-soft);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1.1rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  background: var(--brand);
+  color: var(--brand-fg);
+  transition: filter 0.15s;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-ghost {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--border);
+}
+
+.input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+}
+.input::placeholder { color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
