@@ -47,7 +47,7 @@ npx supabase db query --linked -f supabase/seed.sql
 Para promover alguém a gestor:
 
 ```sql
-update public.tecnicos set papel = 'gestor' where nome = 'Fulano';
+update public.ram_tecnicos set papel = 'gestor' where nome = 'Fulano';
 ```
 
 ## Deploy (Vercel)
