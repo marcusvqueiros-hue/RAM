@@ -10,7 +10,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const gestor = tecnico?.papel === "gestor" && tecnico.ativo;
   const itens: ItemMenu[] = [{ href: "/relatorios", label: "Relatórios", icone: "relatorios" }];
-  if (gestor) itens.push({ href: "/usuarios", label: "Usuários", icone: "usuarios" });
+  if (gestor) {
+    itens.push({ href: "/usuarios", label: "Usuários", icone: "usuarios" });
+    itens.push({ href: "/configuracoes", label: "Configurações", icone: "configuracoes" });
+  }
   const papel = gestor ? "gestor" : tecnico?.ativo ? "técnico" : "consulta";
 
   return (

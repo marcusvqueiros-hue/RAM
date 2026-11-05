@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
-import { BarChart3, LogOut, Maximize, Minimize, PanelLeft, ShieldCheck, Users, X } from "lucide-react";
+import { BarChart3, LogOut, Maximize, Minimize, PanelLeft, Settings2, ShieldCheck, Users, X } from "lucide-react";
 import { Creditos } from "./creditos";
 import { ThemeToggle } from "./theme-toggle";
 
-const ICONES = { relatorios: BarChart3, usuarios: Users } as const;
+const ICONES = { relatorios: BarChart3, usuarios: Users, configuracoes: Settings2 } as const;
 export type ItemMenu = { href: string; label: string; icone: keyof typeof ICONES };
 
 function useTelaCheia() {
