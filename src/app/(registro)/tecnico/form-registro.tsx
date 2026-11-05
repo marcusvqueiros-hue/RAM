@@ -47,11 +47,15 @@ function Campos({ hoje, minimo }: { hoje: string; minimo: string }) {
       </div>
 
       <label className="grid gap-1.5 text-sm font-medium">
-        {tipo ? TIPO_INFO[tipo].referencia : "Local / referência"} <span className="font-normal text-muted">(opcional)</span>
+        <span>
+          {tipo ? TIPO_INFO[tipo].referencia : "Local / referência"} <span className="font-normal text-muted">(opcional)</span>
+        </span>
         <input className="input" name="local" maxLength={120} />
       </label>
       <label className="grid gap-1.5 text-sm font-medium">
-        Observações <span className="font-normal text-muted">(opcional)</span>
+        <span>
+          Observações <span className="font-normal text-muted">(opcional)</span>
+        </span>
         <textarea className="input !min-h-24 py-2" name="observacao" maxLength={500} rows={3} />
       </label>
 

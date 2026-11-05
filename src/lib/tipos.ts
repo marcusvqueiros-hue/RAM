@@ -16,7 +16,7 @@ export const TIPO_INFO: Record<
     nome: "Observações Comportamentais",
     curto: "Observ. Comport.",
     descricao: "Abordagem e feedback sobre comportamentos seguros e de risco.",
-    referencia: "Setor / equipe observada",
+    referencia: "Código do Relatório",
   },
   icit_estatico: {
     nome: "ICIT Estático",
