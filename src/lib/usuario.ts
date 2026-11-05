@@ -1,7 +1,7 @@
 const DOMINIO_USUARIO = "ram.example.com";
 
 /**
- * O Supabase Auth autentica por e-mail. Quem entra com "usuário" (ex.: @[removido])
+ * O Supabase Auth autentica por e-mail. Quem entra com "usuário" (ex.: @usuario)
  * é mapeado para um e-mail interno determinístico — nenhum e-mail real é enviado.
  */
 export function emailDeLogin(entrada: string): string {

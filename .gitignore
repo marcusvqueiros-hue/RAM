@@ -51,3 +51,6 @@ next-env.d.ts
 
 # planilhas com dados pessoais/credenciais
 *.xlsx
+
+# lista local de nomes vetados no backup público
+/.backup-proibidos
