@@ -65,7 +65,7 @@ export function SlideFoto({ ref, periodo, filtros, geral, porTipo, curtos, tecni
           <span className="flex items-center gap-1.5"><i className="size-2.5 rounded-sm bg-bad" /> Abaixo da meta</span>
           <span className="flex items-center gap-1.5"><i className="h-0.5 w-4 rounded bg-warn" /> Meta</span>
         </span>
-        <span>RAM Segurança · Desenvolvido por Marcus Vinicius Silva Queiros · gerado em {formataData(hoje)}</span>
+        <span>RAM Segurança · Desenvolvedor: Marcus Vinicius Silva Queiros · gerado em {formataData(hoje)}</span>
       </div>
     </div>
   );

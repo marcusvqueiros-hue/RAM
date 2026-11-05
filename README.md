@@ -56,4 +56,4 @@ Configure as variáveis de `.env.example` no projeto Vercel (Production + Previe
 
 ---
 
-Desenvolvido por **Marcus Vinicius Silva Queiros**.
+Desenvolvedor: **Marcus Vinicius Silva Queiros**.
