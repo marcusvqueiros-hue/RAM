@@ -93,6 +93,7 @@ export function Shell({ nome, papel, itens, sair, children }: Props) {
               <LogOut size={19} aria-hidden /> Sair
             </button>
           </form>
+          <Creditos className="mt-3 border-t border-line pt-3 !text-left" />
         </div>
       </aside>
 
