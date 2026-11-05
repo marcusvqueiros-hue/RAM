@@ -3,13 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
-import { BarChart3, ClipboardCheck, LogOut, Maximize, Minimize, PanelLeft, ShieldCheck, X } from "lucide-react";
+import { BarChart3, LogOut, Maximize, Minimize, PanelLeft, ShieldCheck, Users, X } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 
-const ITENS = [
-  { href: "/tecnico", label: "Registrar ação", Icon: ClipboardCheck },
-  { href: "/relatorios", label: "Relatórios", Icon: BarChart3 },
-];
+const ICONES = { relatorios: BarChart3, usuarios: Users } as const;
+export type ItemMenu = { href: string; label: string; icone: keyof typeof ICONES };
 
 function useTelaCheia() {
   return useSyncExternalStore(
@@ -22,14 +20,14 @@ function useTelaCheia() {
   );
 }
 
-type Props = { nome: string; papel: string; sair: () => Promise<void>; children: React.ReactNode };
+type Props = { nome: string; papel: string; itens: ItemMenu[]; sair: () => Promise<void>; children: React.ReactNode };
 
-export function Shell({ nome, papel, sair, children }: Props) {
+export function Shell({ nome, papel, itens, sair, children }: Props) {
   const pathname = usePathname();
   const [recolhido, setRecolhido] = useState(false); // desktop
   const [aberto, setAberto] = useState(false); // mobile (gaveta)
   const telaCheia = useTelaCheia();
-  const titulo = ITENS.find((i) => pathname.startsWith(i.href))?.label ?? "RAM";
+  const titulo = itens.find((i) => pathname.startsWith(i.href))?.label ?? "RAM";
 
   function alternar() {
     if (window.matchMedia("(min-width: 1024px)").matches) setRecolhido((v) => !v);
@@ -65,7 +63,8 @@ export function Shell({ nome, papel, sair, children }: Props) {
         </div>
 
         <nav className="w-64 flex-1 space-y-1 p-3" aria-label="Principal">
-          {ITENS.map(({ href, label, Icon }) => {
+          {itens.map(({ href, label, icone }) => {
+            const Icon = ICONES[icone];
             const ativo = pathname.startsWith(href);
             return (
               <Link

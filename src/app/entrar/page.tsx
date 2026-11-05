@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { FundoLogin } from "@/components/fundo-login";
 import { getSessao } from "@/lib/sessao";
+import { destinoPadrao } from "@/lib/usuario";
 import { FormEntrar } from "./form-entrar";
 
 export const metadata = { title: "Entrar" };
@@ -9,10 +10,10 @@ export const metadata = { title: "Entrar" };
 export default async function Entrar(props: PageProps<"/entrar">) {
   const sp = await props.searchParams;
   const nextRaw = Array.isArray(sp.next) ? sp.next[0] : sp.next;
-  const next = nextRaw && nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : "/tecnico";
+  const next = nextRaw && nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : "";
 
-  const { user } = await getSessao();
-  if (user) redirect(next);
+  const { user, tecnico } = await getSessao();
+  if (user) redirect(next || destinoPadrao(tecnico));
 
   return (
     <FundoLogin>

@@ -10,3 +10,8 @@ export function emailDeLogin(entrada: string): string {
   const user = v.replace(/^@/, "").replace(/[^a-z0-9._-]/g, "");
   return `${user}@${DOMINIO_USUARIO}`;
 }
+
+/** Para onde mandar após o login quando não há destino pedido: gestor/consulta → relatórios; técnico → registro. */
+export function destinoPadrao(t: { papel: string; ativo: boolean } | null): string {
+  return t && (t.papel === "gestor" || !t.ativo) ? "/relatorios" : "/tecnico";
+}
