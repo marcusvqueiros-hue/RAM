@@ -9,7 +9,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!user) redirect("/entrar?next=/relatorios");
 
   const gestor = tecnico?.papel === "gestor" && tecnico.ativo;
-  const itens: ItemMenu[] = [{ href: "/relatorios", label: "Relatórios", icone: "relatorios" }];
+  const itens: ItemMenu[] = [
+    { href: "/relatorios", label: "Relatórios", icone: "relatorios" },
+    { href: "/base-de-dados", label: "Base de Dados", icone: "base" },
+  ];
   if (gestor) {
     itens.push({ href: "/usuarios", label: "Usuários", icone: "usuarios" });
     itens.push({ href: "/configuracoes", label: "Configurações", icone: "configuracoes" });
