@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { LogOut, ShieldCheck } from "lucide-react";
+import { Creditos } from "@/components/creditos";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getSessao } from "@/lib/sessao";
 import { sair } from "../entrar/actions";
@@ -29,6 +30,9 @@ export default async function RegistroLayout({ children }: { children: React.Rea
         </div>
       </header>
       <main className="mx-auto w-full max-w-5xl flex-1 p-4 sm:p-6">{children}</main>
+      <footer className="border-t border-line px-4 py-3">
+        <Creditos />
+      </footer>
     </div>
   );
 }

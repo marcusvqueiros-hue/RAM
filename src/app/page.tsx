@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Creditos } from "@/components/creditos";
 import { ArrowRight, BarChart3, ClipboardCheck, ShieldCheck } from "lucide-react";
 
 export default function Home() {
@@ -32,6 +33,7 @@ export default function Home() {
           </span>
         </Link>
       </div>
+      <Creditos />
     </main>
   );
 }

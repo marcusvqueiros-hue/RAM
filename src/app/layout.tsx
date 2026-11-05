@@ -8,6 +8,8 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   title: { default: "RAM · Atividades de Segurança", template: "%s · RAM" },
   description: "Registro e acompanhamento das ações mensais dos técnicos de segurança.",
+  authors: [{ name: "Marcus Vinicius Silva Queiros" }],
+  creator: "Marcus Vinicius Silva Queiros",
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#8a1c33" };

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Creditos } from "./creditos";
 
 const LOSANGOS = [
   { s: 220, x: "6%", y: "12%", d: "0s", t: "18s", o: 0.55 },
@@ -37,6 +38,7 @@ export function FundoLogin({ children }: { children: React.ReactNode }) {
         </div>
         <div className="vidro rounded-3xl p-6 sm:p-8">{children}</div>
         <p className="mt-6 text-center text-xs text-muted">RAM · Relatório de Atividades Mensais de Segurança</p>
+        <Creditos className="mt-1" />
       </main>
     </div>
   );

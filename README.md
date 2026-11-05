@@ -53,3 +53,7 @@ update public.tecnicos set papel = 'gestor' where nome = 'Fulano';
 ## Deploy (Vercel)
 
 Configure as variáveis de `.env.example` no projeto Vercel (Production + Preview) e faça o deploy; o `vercel.json` já registra o cron mensal.
+
+---
+
+Desenvolvido por **Marcus Vinicius Silva Queiros**.

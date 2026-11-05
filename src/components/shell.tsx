@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { BarChart3, LogOut, Maximize, Minimize, PanelLeft, ShieldCheck, Users, X } from "lucide-react";
+import { Creditos } from "./creditos";
 import { ThemeToggle } from "./theme-toggle";
 
 const ICONES = { relatorios: BarChart3, usuarios: Users } as const;
@@ -123,6 +124,9 @@ export function Shell({ nome, papel, itens, sair, children }: Props) {
           </div>
         </header>
         <main className="min-w-0 flex-1 p-4 sm:p-6">{children}</main>
+        <footer className="border-t border-line px-4 py-3">
+          <Creditos />
+        </footer>
       </div>
     </div>
   );

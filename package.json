@@ -29,5 +29,6 @@
     "eslint-config-next": "16.4.5",
     "tailwindcss": "^4",
     "typescript": "^5"
-  }
+  },
+  "author": "Marcus Vinicius Silva Queiros"
 }
