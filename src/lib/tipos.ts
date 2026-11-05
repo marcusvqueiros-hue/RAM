@@ -13,8 +13,8 @@ export const TIPO_INFO: Record<
   { nome: string; curto: string; descricao: string; referencia: string }
 > = {
   observacao_comportamental: {
-    nome: "Observações Comportamentais",
-    curto: "Observ. Comport.",
+    nome: "Blitz Comportamental",
+    curto: "Blitz Comport.",
     descricao: "Abordagem e feedback sobre comportamentos seguros e de risco.",
     referencia: "Código do Relatório",
   },

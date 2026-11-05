@@ -4,7 +4,7 @@ Sistema para técnicos de segurança registrarem as ações do mês e para a ges
 
 | Link | Para quê |
 | --- | --- |
-| `/tecnico` | **Área do técnico** — registrar Observações Comportamentais, ICIT Estático, Inspeção Veicular, DSS e Ações na Comunidade; ver progresso das próprias metas |
+| `/tecnico` | **Área do técnico** — registrar Blitz Comportamental, ICIT Estático, Inspeção Veicular, DSS e Ações na Comunidade; ver progresso das próprias metas |
 | `/relatorios` | **Relatórios** — resultado por técnico/tipo (barras + traço da meta), medidores, evolução histórica, ranking e insights automáticos |
 | `/entrar`, `/cadastrar` | Login e primeiro acesso (cadastro fechado por código da equipe) |
 

@@ -19,7 +19,7 @@ export default function Home() {
         <Link href="/tecnico" className="card group flex flex-col gap-3 p-6 transition-shadow hover:shadow-lg">
           <span className="grid size-12 place-items-center rounded-xl bg-brandsoft text-brand"><ClipboardCheck aria-hidden /></span>
           <h2 className="text-xl font-bold">Área do técnico</h2>
-          <p className="text-sm text-muted">Observações comportamentais, ICIT estático, inspeção veicular, DSS e ações na comunidade.</p>
+          <p className="text-sm text-muted">Blitz comportamental, ICIT estático, inspeção veicular, DSS e ações na comunidade.</p>
           <span className="mt-auto inline-flex items-center gap-1 font-semibold text-brand">
             Registrar ações <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" aria-hidden />
           </span>
