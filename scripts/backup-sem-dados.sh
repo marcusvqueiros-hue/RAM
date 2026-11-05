@@ -25,12 +25,16 @@ git clone -q --no-local --branch main "$RAIZ" "$TMP/repo"
 cd "$TMP/repo"
 
 export FILTER_BRANCH_SQUELCH_WARNING=1
-git filter-branch -f --index-filter \
-  'git rm -q --cached --ignore-unmatch supabase/seed.sql scripts/gerar_seed.py' \
-  --env-filter "
+git filter-branch -f   --tree-filter "rm -f supabase/seed.sql scripts/gerar_seed.py; [ -f src/lib/usuario.ts ] && sed -i 's/@[removido]/@usuario/g' src/lib/usuario.ts || true"   --env-filter "
     export GIT_AUTHOR_EMAIL='$EMAIL' GIT_COMMITTER_EMAIL='$EMAIL'
     export GIT_AUTHOR_NAME='Marcus Vinicius Silva Queiros' GIT_COMMITTER_NAME='Marcus Vinicius Silva Queiros'
   " -- main >/dev/null 2>&1
+
+# descarta tudo que ainda aponte para o histórico original (origin e cópias de segurança do filter-branch)
+git remote remove origin
+git for-each-ref --format='%(refname)' refs/original | xargs -r -n1 git update-ref -d
+git reflog expire --expire=now --all
+git gc -q --prune=now
 
 cat > supabase/SEED.md <<'EOF'
 # Seed removido deste backup
@@ -41,16 +45,20 @@ EOF
 git add supabase/SEED.md
 git -c user.name="Marcus Vinicius Silva Queiros" -c user.email="$EMAIL" commit -q -m "docs: explica a ausência do seed neste backup"
 
-# conferência: nenhum nome pode aparecer em nenhum commit
-if git rev-list --all | xargs -I{} git grep -lIE "$PROIBIDOS" {} 2>/dev/null | grep -q .; then
-  echo "ERRO: ainda há dados pessoais no histórico. Envio cancelado." >&2
+# conferência: nenhum nome pode aparecer em nenhum commit (conteúdo, autoria ou mensagem)
+ACHADOS="$(for c in $(git rev-list --all); do git grep -lIE "$PROIBIDOS" "$c" || true; done)"
+if [ -n "$ACHADOS" ]; then
+  echo "ERRO: dados pessoais no conteúdo do histórico (arquivos abaixo). Envio cancelado." >&2
+  echo "$ACHADOS" | sed "s/^[0-9a-f]*:/  /" | sort -u >&2
   exit 1
 fi
-if git log --all --format='%an %ae %s%n%b' | grep -qE "$PROIBIDOS|gmail.com"; then
+ACHADOS="$(git log --all --format='%an %ae %s%n%b' | grep -E "$PROIBIDOS|gmail.com" || true)"
+if [ -n "$ACHADOS" ]; then
   echo "ERRO: dados pessoais em autoria/mensagens. Envio cancelado." >&2
   exit 1
 fi
 
+[ -z "${DRY_RUN:-}" ] || { echo "DRY_RUN: verificação passou; nada foi enviado."; exit 0; }
 git remote add backup "$BACKUP_URL"
 git -c credential.helper= -c credential.helper='!gh auth git-credential' push --force backup main
 echo "Backup enviado para $BACKUP_URL"
