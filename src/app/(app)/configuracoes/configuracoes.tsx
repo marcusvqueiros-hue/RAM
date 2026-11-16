@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState } from "react";
-import { Check, Save, Settings2 } from "lucide-react";
+import { useActionState, useState } from "react";
+import { Check, RotateCcw, Save, Settings2, UserMinus } from "lucide-react";
 import { TIPOS, TIPO_INFO, type TipoAcao } from "@/lib/tipos";
-import { salvarMetas, salvarPadrao, type EstadoMetas } from "./actions";
+import { reativarNoMes, retirarDoMes, salvarMetas, salvarPadrao, type EstadoMetas } from "./actions";
 
-export type LinhaMeta = { id: string; nome: string; metas: Record<TipoAcao, number>; definida: boolean };
+export type LinhaMeta = { id: string; nome: string; metas: Record<TipoAcao, number>; definida: boolean; acoes: number };
 
 function Num({ name, valor, form, rotulo }: { name: string; valor: number; form?: string; rotulo: string }) {
   return (
@@ -31,33 +31,82 @@ function Retorno({ e }: { e: EstadoMetas }) {
   return null;
 }
 
-function LinhaTecnico({ l, mes }: { l: LinhaMeta; mes: string }) {
+function LinhaTecnico({ l, mes, rotuloMes }: { l: LinhaMeta; mes: string; rotuloMes: string }) {
   const [e, action, pend] = useActionState<EstadoMetas, FormData>(salvarMetas, {});
+  const [eR, retirar, pendR] = useActionState<EstadoMetas, FormData>(retirarDoMes, {});
+  const [eA, reativar, pendA] = useActionState<EstadoMetas, FormData>(reativarNoMes, {});
+  const [confirmando, setConfirmando] = useState(false);
   const total = TIPOS.reduce((s, t) => s + l.metas[t], 0);
+  const fora = l.definida && total === 0; // sem metas no mês = fora do mês (some dos relatórios)
   return (
-    <tr className="border-b border-line last:border-0">
-      <td className="py-2.5 pr-3 font-semibold">
-        {l.nome}
-        {!l.definida && <span className="ml-2 rounded-full bg-warnsoft px-2 py-0.5 text-xs font-medium text-warn">usando padrão</span>}
-      </td>
-      {TIPOS.map((t) => (
-        <td key={t} className="px-1.5 py-2.5 text-center">
-          <Num name={t} valor={l.metas[t]} form={`f-${l.id}`} rotulo={`${TIPO_INFO[t].nome} de ${l.nome}`} />
+    <>
+      <tr className={`border-b border-line ${fora ? "opacity-60" : ""}`}>
+        <td className="py-2.5 pr-3 font-semibold">
+          {l.nome}
+          {fora && <span className="ml-2 rounded-full bg-badsoft px-2 py-0.5 text-xs font-medium text-bad">fora deste mês</span>}
+          {!l.definida && <span className="ml-2 rounded-full bg-warnsoft px-2 py-0.5 text-xs font-medium text-warn">usando padrão</span>}
         </td>
-      ))}
-      <td className="px-3 py-2.5 text-center font-bold tabular-nums">{total}</td>
-      <td className="py-2.5 pl-3 text-right">
-        {/* os inputs ficam na mesma linha da tabela; o form os referencia pelo atributo form */}
-        <form id={`f-${l.id}`} action={action} className="flex items-center justify-end gap-3">
-          <input type="hidden" name="tecnico_id" value={l.id} />
-          <input type="hidden" name="mes" value={mes} />
-          <Retorno e={e} />
-          <button className="btn !min-h-10 !px-3 text-sm" disabled={pend}>
-            <Save size={16} aria-hidden /> {pend ? "Salvando…" : "Salvar"}
-          </button>
-        </form>
-      </td>
-    </tr>
+        {TIPOS.map((t) => (
+          <td key={t} className="px-1.5 py-2.5 text-center">
+            <Num name={t} valor={l.metas[t]} form={`f-${l.id}`} rotulo={`${TIPO_INFO[t].nome} de ${l.nome}`} />
+          </td>
+        ))}
+        <td className="px-3 py-2.5 text-center font-bold tabular-nums">{total}</td>
+        <td className="py-2.5 pl-3 text-right">
+          {/* os inputs ficam na mesma linha da tabela; o form os referencia pelo atributo form */}
+          <form id={`f-${l.id}`} action={action} className="flex items-center justify-end gap-2">
+            <input type="hidden" name="tecnico_id" value={l.id} />
+            <input type="hidden" name="mes" value={mes} />
+            <Retorno e={e} />
+            <button className="btn !min-h-10 !px-3 text-sm" disabled={pend}>
+              <Save size={16} aria-hidden /> {pend ? "Salvando…" : "Salvar"}
+            </button>
+            {fora ? (
+              <button formAction={reativar} className="btn btn-ghost !min-h-10 !px-3 text-sm" disabled={pendA} title="Voltar com as metas padrão">
+                <RotateCcw size={16} aria-hidden /> {pendA ? "…" : "Reativar"}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmando((v) => !v)}
+                aria-expanded={confirmando}
+                className="btn btn-ghost !min-h-10 !px-3 text-sm text-bad"
+                title="Retirar este técnico do mês"
+              >
+                <UserMinus size={16} aria-hidden /> Retirar
+              </button>
+            )}
+          </form>
+          {eA.erro && <p role="alert" className="mt-1 text-xs text-bad">{eA.erro}</p>}
+        </td>
+      </tr>
+      {confirmando && !fora && (
+        <tr className="border-b border-line bg-badsoft">
+          <td colSpan={8} className="px-4 py-3">
+            <form action={retirar} className="flex flex-wrap items-center gap-4">
+              <input type="hidden" name="tecnico_id" value={l.id} />
+              <input type="hidden" name="mes" value={mes} />
+              <p className="text-sm">
+                Retirar <strong>{l.nome}</strong> de <strong>{rotuloMes}</strong>? Ele deixa de aparecer nos relatórios, no ranking e na base deste mês.
+              </p>
+              {l.acoes > 0 && (
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="apagar" className="size-4 accent-[var(--bad)]" />
+                  Apagar também as <strong>{l.acoes}</strong> ações lançadas neste mês (não dá para desfazer)
+                </label>
+              )}
+              <div className="ml-auto flex items-center gap-2">
+                <button type="button" onClick={() => setConfirmando(false)} className="btn btn-ghost !min-h-10 !px-3 text-sm">Cancelar</button>
+                <button className="btn !min-h-10 !px-3 text-sm !bg-[var(--bad)]" disabled={pendR}>
+                  <UserMinus size={16} aria-hidden /> {pendR ? "Retirando…" : "Confirmar"}
+                </button>
+              </div>
+            </form>
+            {eR.erro && <p role="alert" className="mt-2 text-sm text-bad">{eR.erro}</p>}
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
 
@@ -73,7 +122,7 @@ export function Configuracoes({ mes, meses, linhas, padrao }: { mes: string; mes
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-brand">
             <Settings2 aria-hidden /> Configurações
           </h1>
-          <p className="text-muted">Metas de cada técnico por tipo de ação. Alterações valem para o mês escolhido.</p>
+          <p className="text-muted">Metas de cada técnico por tipo de ação. Alterações valem para o mês escolhido. Use <strong>Retirar</strong> para tirar um técnico do mês (férias, afastamento, transferência).</p>
         </div>
         <label className="grid gap-1 text-xs font-medium text-muted">
           Mês das metas
@@ -103,7 +152,7 @@ export function Configuracoes({ mes, meses, linhas, padrao }: { mes: string; mes
             </thead>
             <tbody>
               {linhas.map((l) => (
-                <LinhaTecnico key={`${mes}-${l.id}`} l={l} mes={mes} />
+                <LinhaTecnico key={`${mes}-${l.id}`} l={l} mes={mes} rotuloMes={meses.find((m) => m.valor === mes)?.rotulo ?? mes} />
               ))}
             </tbody>
             <tfoot>
