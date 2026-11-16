@@ -25,7 +25,10 @@ git clone -q --no-local --branch main "$RAIZ" "$TMP/repo"
 cd "$TMP/repo"
 
 export FILTER_BRANCH_SQUELCH_WARNING=1
-git filter-branch -f   --tree-filter "rm -f supabase/seed.sql scripts/gerar_seed.py; [ -f src/lib/usuario.ts ] && sed -i 's/@[removido]/@usuario/g' src/lib/usuario.ts || true"   --env-filter "
+# remove os arquivos de dados e apaga qualquer nome vetado que tenha restado em versões antigas destes dois arquivos
+git filter-branch -f \
+  --tree-filter "rm -f supabase/seed.sql scripts/gerar_seed.py; for f in src/lib/usuario.ts scripts/backup-sem-dados.sh; do [ -f \$f ] && sed -i -E 's/$PROIBIDOS/[removido]/g' \$f; done; true" \
+  --env-filter "
     export GIT_AUTHOR_EMAIL='$EMAIL' GIT_COMMITTER_EMAIL='$EMAIL'
     export GIT_AUTHOR_NAME='Marcus Vinicius Silva Queiros' GIT_COMMITTER_NAME='Marcus Vinicius Silva Queiros'
   " -- main >/dev/null 2>&1
